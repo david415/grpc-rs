@@ -125,6 +125,11 @@ mod imp {
 mod imp {
     use super::join_host_port;
     use grpc_sys::{self, GrpcServer};
+    use std::path::Path;
+    use std::os::unix::net::UnixListener;
+    use std::os::unix::io::AsRawFd;
+    use std::io;
+    use std::ptr;
 
     pub struct Binder {
         pub host: String,
@@ -139,6 +144,25 @@ mod imp {
         pub unsafe fn bind(&mut self, server: *mut GrpcServer) -> u16 {
             let addr = join_host_port(&self.host, self.port);
             grpc_sys::grpc_server_add_insecure_http2_port(server, addr.as_ptr() as _) as u16
+        }
+    }
+
+    pub struct UnixSocketBinder {
+        pub socket_path: String,
+    }
+
+    impl UnixSocketBinder {
+        pub fn new(socket_path: String) -> UnixSocketBinder {
+            UnixSocketBinder{
+                socket_path: socket_path,
+            }
+        }
+
+        pub unsafe fn bind(&mut self, server: *mut GrpcServer) -> io::Result<()> {
+            let socket_path = Path::new(&self.socket_path);
+            let listener = UnixListener::bind(&socket_path)?;
+            grpc_sys::grpc_server_add_insecure_channel_from_fd(server, ptr::null_mut(), listener.as_raw_fd());
+            Ok(())
         }
     }
 }

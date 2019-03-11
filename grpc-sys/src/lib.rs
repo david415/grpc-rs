@@ -730,6 +730,11 @@ extern "C" {
         cq: *mut GrpcCompletionQueue,
         reserved: *mut c_void,
     );
+    pub fn grpc_server_add_insecure_channel_from_fd(
+        server: *mut GrpcServer,
+        reserved: *mut c_void,
+        fd: c_int,
+    );
     pub fn grpc_server_add_insecure_http2_port(
         server: *mut GrpcServer,
         addr: *const c_char,
@@ -834,6 +839,11 @@ mod secure_component {
         ) -> *mut GrpcChannel;
 
         pub fn grpc_google_default_credentials_create() -> *mut GrpcChannelCredentials;
+        pub fn grpc_server_add_insecure_channel_from_fd(
+            server: *mut GrpcServer,
+            reserved: *mut c_void,
+            fd: c_int,
+        );
         pub fn grpc_server_add_secure_http2_port(
             server: *mut GrpcServer,
             addr: *const c_char,
